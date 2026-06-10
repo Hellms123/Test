@@ -1,3 +1,4 @@
+// Teständerung auf dem entwicklung Branch
 async function graphql(query) {
     let antwort = await fetch("https://countries.trevorblades.com/", {
         method: "POST",
