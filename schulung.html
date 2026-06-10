@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Schulungsplattform Datenschutz & IT-Sicherheit</title>
+<style>
+body{font-family:Arial,sans-serif;max-width:800px;margin:0 auto;padding:20px;background:#f5f5f5;}
+.sp-nav{display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap;}
+.sp-nav button{flex:1;min-width:120px;padding:8px 12px;font-size:13px;background:white;border:1px solid #ccc;border-radius:8px;cursor:pointer;}
+.sp-nav button.active{background:#E6F1FB;color:#0C447C;border-color:#378ADD;}
+.sp-card{background:white;border-radius:12px;padding:20px;margin-bottom:12px;border:1px solid #e0e0e0;cursor:pointer;}
+.sp-card:hover{border-color:#aaa;}
+.sp-card.done{border-left:3px solid #1D9E75;border-radius:0 12px 12px 0;}
+.sp-badge{display:inline-block;font-size:11px;padding:3px 8px;border-radius:6px;margin-left:8px;}
+.sp-badge.ds{background:#E6F1FB;color:#0C447C;}
+.sp-badge.it{background:#E1F5EE;color:#085041;}
+.sp-progress{height:8px;background:#eee;border-radius:4px;overflow:hidden;margin:8px 0;}
+.sp-bar{height:100%;background:#1D9E75;border-radius:4px;transition:width 0.4s;}
+.sp-folie{background:#f5f5f5;border-radius:8px;padding:20px;margin-bottom:12px;min-height:120px;}
+.sp-quiz-opt{width:100%;text-align:left;padding:10px 14px;margin-bottom:8px;font-size:14px;background:white;border:1px solid #ccc;border-radius:8px;cursor:pointer;}
+.sp-quiz-opt:hover{background:#f5f5f5;}
+.sp-quiz-opt.richtig{background:#E1F5EE;color:#085041;border-color:#1D9E75;}
+.sp-quiz-opt.falsch{background:#FCEBEB;color:#791F1F;border-color:#E24B4A;}
+.sp-szenario{border-left:3px solid #378ADD;padding:12px 16px;background:#f0f6ff;margin-bottom:12px;border-radius:0 8px 8px 0;}
+button{padding:10px;background:white;border:1px solid #ccc;border-radius:8px;cursor:pointer;font-size:14px;}
+button:hover{background:#f5f5f5;}
+h1{font-size:22px;font-weight:500;margin:0;}
+p{line-height:1.7;}
+</style>
+</head>
+<body>
+<div id="app">
+<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:12px;">
+  <div><h1>Schulungsplattform</h1><p style="font-size:13px;color:#888;margin:4px 0 0;">Datenschutz & IT-Sicherheit</p></div>
+  <div style="text-align:right;"><p style="font-size:13px;color:#888;margin:0;">Gesamtfortschritt</p><p style="font-size:24px;font-weight:500;margin:0;" id="gesamt-pct">0%</p></div>
+</div>
+<div class="sp-progress" style="margin-bottom:20px;"><div class="sp-bar" id="gesamt-bar" style="width:0%"></div></div>
+<div class="sp-nav" id="nav">
+  <button class="active" onclick="zeige('uebersicht')">Übersicht</button>
+  <button onclick="zeige('modul')">Module</button>
+  <button onclick="zeige('quiz')">Quiz</button>
+  <button onclick="zeige('szenarien')">Fallbeispiele</button>
+</div>
+<div id="view-uebersicht">
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:20px;">
+    <div style="background:#f0f0f0;border-radius:8px;padding:16px;text-align:center;"><p style="font-size:24px;font-weight:500;margin:0;" id="stat-module">0/6</p><p style="font-size:13px;color:#888;margin:4px 0 0;">Module</p></div>
+    <div style="background:#f0f0f0;border-radius:8px;padding:16px;text-align:center;"><p style="font-size:24px;font-weight:500;margin:0;" id="stat-quiz">0/12</p><p style="font-size:13px;color:#888;margin:4px 0 0;">Quizfragen</p></div>
+    <div style="background:#f0f0f0;border-radius:8px;padding:16px;text-align:center;"><p style="font-size:24px;font-weight:500;margin:0;" id="stat-sz">0/4</p><p style="font-size:13px;color:#888;margin:4px 0 0;">Fallbeispiele</p></div>
+  </div>
+  <p style="font-size:15px;font-weight:500;margin:0 0 12px;">Schnellstart</p>
+  <div id="schnellstart"></div>
+</div>
+<div id="view-modul" style="display:none;">
+  <div id="modul-liste"></div>
+  <div id="modul-inhalt" style="display:none;">
+    <button onclick="zurueck()" style="margin-bottom:12px;width:auto;padding:8px 16px;">← Zurück</button>
+    <div id="modul-titel" style="font-size:18px;font-weight:500;margin-bottom:12px;"></div>
+    <div id="folien-container"></div>
+    <div style="display:flex;gap:8px;margin-top:12px;">
+      <button id="btn-prev" onclick="folie(-1)" style="flex:1;">Zurück</button>
+      <span id="folie-nr" style="align-self:center;font-size:13px;color:#888;min-width:60px;text-align:center;"></span>
+      <button id="btn-next" onclick="folie(1)" style="flex:1;">Weiter</button>
+    </div>
+    <button id="btn-abschliessen" onclick="modulAbschliessen()" style="margin-top:12px;width:100%;background:#E1F5EE;color:#085041;border-color:#1D9E75;display:none;">Modul abschließen ✓</button>
+  </div>
+</div>
+<div id="view-quiz" style="display:none;">
+  <div id="quiz-start"><div class="sp-card" style="cursor:default;"><p style="font-weight:500;margin:0 0 8px;">Quiz starten</p><p style="font-size:14px;color:#888;margin:0 0 16px;">12 Fragen zu Datenschutz und IT-Sicherheit.</p><button onclick="startQuiz()" style="width:auto;padding:8px 24px;">Quiz starten</button></div></div>
+  <div id="quiz-frage" style="display:none;"></div>
+  <div id="quiz-ergebnis" style="display:none;"></div>
+</div>
+<div id="view-szenarien" style="display:none;">
+  <div id="sz-liste"></div>
+  <div id="sz-detail" style="display:none;"></div>
+</div>
+</div>
+<script>
+const module=[
+  {id:0,titel:"Grundlagen des Datenschutzes",badge:"ds",folien:[
+    {titel:"Was ist Datenschutz?",text:"Datenschutz bezeichnet den Schutz personenbezogener Daten vor Missbrauch. Rechtsgrundlage in der EU ist die Datenschutz-Grundverordnung (DSGVO), die seit dem 25. Mai 2018 gilt."},
+    {titel:"Personenbezogene Daten",text:"Personenbezogene Daten sind alle Informationen, die sich auf eine identifizierte oder identifizierbare natürliche Person beziehen. Beispiele: Name, Adresse, IP-Adresse, Gesundheitsdaten."},
+    {titel:"Die 7 Grundsätze der DSGVO",text:"Art. 5 DSGVO definiert: Rechtmäßigkeit, Zweckbindung, Datensparsamkeit, Richtigkeit, Speicherbegrenzung, Integrität und Vertraulichkeit sowie Rechenschaftspflicht."},
+    {titel:"Betroffenenrechte",text:"Betroffene haben das Recht auf Auskunft (Art. 15), Berichtigung (Art. 16), Löschung (Art. 17), Einschränkung (Art. 18), Datenübertragbarkeit (Art. 20) und Widerspruch (Art. 21)."}
+  ]},
+  {id:1,titel:"Aufgaben des Datenschutzbeauftragten",badge:"ds",folien:[
+    {titel:"Wann ist ein DSB Pflicht?",text:"Nach Art. 37 DSGVO ist ein Datenschutzbeauftragter u.a. dann zu benennen, wenn die Kerntätigkeit umfangreiche Verarbeitung besonderer Kategorien personenbezogener Daten umfasst."},
+    {titel:"Aufgaben des DSB",text:"Der DSB berät und informiert den Verantwortlichen, überwacht die Einhaltung der DSGVO, führt Datenschutz-Folgenabschätzungen durch und ist Anlaufstelle für Aufsichtsbehörden."},
+    {titel:"Stellung des DSB",text:"Der DSB darf wegen seiner Tätigkeit nicht benachteiligt werden (Art. 38 Abs. 3 DSGVO). Er untersteht direkt der höchsten Managementebene und ist zur Verschwiegenheit verpflichtet."}
+  ]},
+  {id:2,titel:"Technische und organisatorische Maßnahmen",badge:"ds",folien:[
+    {titel:"Was sind TOMs?",text:"Technische und organisatorische Maßnahmen (TOMs) nach Art. 32 DSGVO dienen der Sicherstellung eines dem Risiko angemessenen Schutzniveaus für personenbezogene Daten."},
+    {titel:"Technische Maßnahmen",text:"Beispiele: Verschlüsselung, Pseudonymisierung, Zugriffskontrolle, Protokollierung, regelmäßige Sicherheitstests und Backupkonzepte."},
+    {titel:"Organisatorische Maßnahmen",text:"Beispiele: Schulungen, Berechtigungskonzepte, Vier-Augen-Prinzip, Vertraulichkeitsvereinbarungen, Datenschutzrichtlinien und Löschkonzepte."}
+  ]},
+  {id:3,titel:"Grundlagen der IT-Sicherheit",badge:"it",folien:[
+    {titel:"Das CIA-Prinzip",text:"IT-Sicherheit basiert auf drei Grundwerten: Vertraulichkeit (Confidentiality), Integrität (Integrity) und Verfügbarkeit (Availability). Diese werden auch als CIA-Triade bezeichnet."},
+    {titel:"Bedrohungsarten",text:"Häufige Bedrohungen umfassen Malware, Phishing, Social Engineering, Ransomware, DDoS-Angriffe und Insider-Bedrohungen. Jede erfordert spezifische Gegenmaßnahmen."},
+    {titel:"Sicherheitsschichten",text:"Defense in Depth bezeichnet das Konzept mehrerer Sicherheitsschichten: Netzwerksicherheit, Endpunktsicherheit, Anwendungssicherheit, Datensicherheit und physische Sicherheit."}
+  ]},
+  {id:4,titel:"Incident Response & Meldepflichten",badge:"it",folien:[
+    {titel:"Was ist ein Datenschutzvorfall?",text:"Ein Datenschutzvorfall liegt vor, wenn personenbezogene Daten unbeabsichtigt oder unrechtmäßig vernichtet, verloren, verändert oder offenbart werden (Art. 4 Nr. 12 DSGVO)."},
+    {titel:"Meldepflicht nach Art. 33 DSGVO",text:"Datenschutzverletzungen mit Risiko für Betroffene müssen innerhalb von 72 Stunden der zuständigen Aufsichtsbehörde gemeldet werden."},
+    {titel:"Benachrichtigung Betroffener",text:"Bei hohem Risiko für Betroffene ist auch eine direkte Benachrichtigung nach Art. 34 DSGVO erforderlich. Ausnahmen gelten wenn Daten verschlüsselt waren."}
+  ]},
+  {id:5,titel:"Passwörter & Zugriffsschutz",badge:"it",folien:[
+    {titel:"Sichere Passwörter",text:"Ein sicheres Passwort hat mindestens 12 Zeichen und enthält Großbuchstaben, Kleinbuchstaben, Zahlen und Sonderzeichen. Passwörter dürfen nicht wiederverwendet werden."},
+    {titel:"Multi-Faktor-Authentifizierung",text:"MFA kombiniert mindestens zwei Faktoren: Wissen (Passwort), Besitz (Token/Smartphone) oder Biometrie. MFA reduziert das Risiko kompromittierter Zugänge erheblich."},
+    {titel:"Least Privilege Prinzip",text:"Jeder Benutzer erhält nur die Zugriffsrechte, die für seine Tätigkeit tatsächlich erforderlich sind. Übermäßige Rechte erhöhen das Risiko bei Kompromittierung eines Kontos."}
+  ]}
+];
+const quizFragen=[
+  {frage:"Ab wann gilt die DSGVO in der EU?",optionen:["25. Mai 2016","25. Mai 2018","25. Mai 2020","1. Januar 2019"],richtig:1,erkl:"Die DSGVO gilt seit dem 25. Mai 2018 in allen EU-Mitgliedstaaten."},
+  {frage:"Was bedeutet Datensparsamkeit?",optionen:["Möglichst viele Daten speichern","Nur notwendige Daten erheben","Daten kostenlos anbieten","Daten löschen nach 1 Jahr"],richtig:1,erkl:"Datensparsamkeit bedeutet, nur die für den Zweck tatsächlich notwendigen Daten zu erheben (Art. 5 Abs. 1 lit. c DSGVO)."},
+  {frage:"Innerhalb welcher Frist muss eine Datenpanne gemeldet werden?",optionen:["24 Stunden","48 Stunden","72 Stunden","7 Tage"],richtig:2,erkl:"Nach Art. 33 DSGVO besteht eine Meldefrist von 72 Stunden gegenüber der Aufsichtsbehörde."},
+  {frage:"Wofür steht CIA in der IT-Sicherheit?",optionen:["Control, Integrity, Access","Confidentiality, Integrity, Availability","Cyber, Incident, Analysis","Control, Information, Audit"],richtig:1,erkl:"CIA steht für Vertraulichkeit, Integrität und Verfügbarkeit."},
+  {frage:"Was ist Multi-Faktor-Authentifizierung?",optionen:["Ein Passwort mit 20 Zeichen","Anmeldung über mehrere Geräte","Kombination aus zwei oder mehr Faktoren","Biometrische Anmeldung allein"],richtig:2,erkl:"MFA kombiniert mindestens zwei verschiedene Faktoren wie Passwort und Token."},
+  {frage:"Was regelt Art. 37 DSGVO?",optionen:["Meldepflicht bei Datenpannen","Betroffenenrechte","Benennung eines Datenschutzbeauftragten","Auftragsverarbeitung"],richtig:2,erkl:"Art. 37 DSGVO regelt die Pflicht zur Benennung eines Datenschutzbeauftragten."},
+  {frage:"Was versteht man unter Least Privilege?",optionen:["Minimale Datenspeicherung","Minimale Zugriffsrechte für Benutzer","Minimale Passwortlänge","Minimale Verschlüsselung"],richtig:1,erkl:"Least Privilege bedeutet, dass jeder Nutzer nur die für seine Aufgabe notwendigen Rechte erhält."},
+  {frage:"Was sind besondere Kategorien personenbezogener Daten?",optionen:["Bankdaten und Passwörter","Gesundheits- und politische Daten","Adressen und Telefonnummern","Alle personenbezogenen Daten"],richtig:1,erkl:"Art. 9 DSGVO schützt besonders sensible Daten wie Gesundheits- und politische Daten."},
+  {frage:"Was bedeutet Pseudonymisierung?",optionen:["Datenlöschung","Datenverschlüsselung","Ersetzen identifizierender Daten durch Pseudonyme","Anonymisierung"],richtig:2,erkl:"Pseudonymisierung ersetzt direkt identifizierende Merkmale durch Pseudonyme."},
+  {frage:"Wer ist nach DSGVO verantwortlich?",optionen:["Der Datenschutzbeauftragte","Der Verantwortliche","Die Aufsichtsbehörde","Der Auftragsverarbeiter"],richtig:1,erkl:"Der Verantwortliche entscheidet über Zweck und Mittel der Verarbeitung (Art. 4 Nr. 7 DSGVO)."},
+  {frage:"Was ist ein Penetrationstest?",optionen:["Test der Netzwerkgeschwindigkeit","Autorisierter Angriff zur Schwachstellensuche","Test der Backup-Wiederherstellung","Überprüfung der Passwortrichtlinien"],richtig:1,erkl:"Ein Penetrationstest ist ein autorisierter simulierter Angriff zur Aufdeckung von Sicherheitslücken."},
+  {frage:"Was schützt Art. 32 DSGVO?",optionen:["Betroffenenrechte","Technische und organisatorische Maßnahmen","Meldepflichten","Auftragsverarbeitung"],richtig:1,erkl:"Art. 32 DSGVO verpflichtet zur Implementierung angemessener Sicherheitsmaßnahmen."}
+];
+const szenarien=[
+  {titel:"Phishing-E-Mail im Unternehmen",typ:"it",beschreibung:"Ein Mitarbeiter erhält eine E-Mail scheinbar von der IT-Abteilung mit der Bitte, sein Passwort zu bestätigen. Der Link führt auf eine gefälschte Anmeldeseite.",fragen:[{frage:"Was sollte der Mitarbeiter tun?",optionen:["Passwort eingeben","IT-Abteilung direkt kontaktieren","E-Mail weiterleiten","Passwort ändern und eingeben"],richtig:1,erkl:"Der Mitarbeiter sollte den Link nicht öffnen und die IT-Abteilung über einen bekannten Kanal kontaktieren."}]},
+  {titel:"Datenpanne durch verlorenes Notebook",typ:"ds",beschreibung:"Ein Mitarbeiter verliert sein unverschlüsseltes Dienstnotebook mit Kundendaten auf einer Dienstreise.",fragen:[{frage:"Welche Maßnahme muss eingeleitet werden?",optionen:["Nichts unternehmen","Meldung an Aufsichtsbehörde innerhalb 72 Stunden","Meldung innerhalb 7 Tagen","Interne Dokumentation reicht"],richtig:1,erkl:"Nach Art. 33 DSGVO muss eine Datenpanne innerhalb von 72 Stunden gemeldet werden."}]},
+  {titel:"Unbefugter Zugriff durch Ex-Mitarbeiter",typ:"it",beschreibung:"Ein ehemaliger Mitarbeiter greift nach seinem Ausscheiden noch auf das Firmennetzwerk zu, da sein Account nicht deaktiviert wurde.",fragen:[{frage:"Was hätte verhindert werden müssen?",optionen:["Bessere Passwörter","Sofortige Deaktivierung beim Austritt","Verschlüsselung aller Daten","Einführung von MFA"],richtig:1,erkl:"Das Offboarding muss die sofortige Deaktivierung aller Zugänge umfassen."}]},
+  {titel:"Ransomware-Angriff",typ:"it",beschreibung:"Alle Dateien auf dem Server werden verschlüsselt. Die Angreifer fordern Lösegeld. Es gibt kein aktuelles Backup.",fragen:[{frage:"Was wäre die wichtigste Präventivmaßnahme gewesen?",optionen:["Antivirus allein","Regelmäßige Backups und Netzwerksegmentierung","Bessere Firewall","Schulungen"],richtig:1,erkl:"Regelmäßige getestete Backups und Netzwerksegmentierung sind die wichtigsten Schutzmaßnahmen gegen Ransomware."}]}
+];
+let status={module:new Array(6).fill(false),quizAntworten:[],szAbgeschlossen:new Array(4).fill(false)};
+let aktModul=0,aktFolie=0,quizIdx=0,aktSz=0;
+function updateStats(){
+  let m=status.module.filter(Boolean).length;
+  let q=status.quizAntworten.length;
+  let s=status.szAbgeschlossen.filter(Boolean).length;
+  document.getElementById("stat-module").textContent=m+"/6";
+  document.getElementById("stat-quiz").textContent=q+"/12";
+  document.getElementById("stat-sz").textContent=s+"/4";
+  let pct=Math.round(((m/6)+(q/12)+(s/4))/3*100);
+  document.getElementById("gesamt-pct").textContent=pct+"%";
+  document.getElementById("gesamt-bar").style.width=pct+"%";
+}
+function zeige(view){
+  ["uebersicht","modul","quiz","szenarien"].forEach(v=>{document.getElementById("view-"+v).style.display=v===view?"block":"none";});
+  document.querySelectorAll(".sp-nav button").forEach((b,i)=>{b.classList.toggle("active",["uebersicht","modul","quiz","szenarien"][i]===view);});
+  if(view==="modul")renderModulListe();
+  if(view==="szenarien")renderSzListe();
+  if(view==="uebersicht")renderSchnellstart();
+}
+function renderSchnellstart(){
+  let html="";let count=0;
+  module.forEach((m,i)=>{if(!status.module[i]&&count<3){html+=`<div class="sp-card" onclick="zeige('modul');setTimeout(()=>oeffneModul(${i}),50)"><div style="display:flex;align-items:center;justify-content:space-between;"><span style="font-size:14px;font-weight:500;">${m.titel}</span><span class="sp-badge ${m.badge}">${m.badge==="ds"?"Datenschutz":"IT-Sicherheit"}</span></div><p style="font-size:13px;color:#888;margin:6px 0 0;">${m.folien.length} Folien</p></div>`;count++;}});
+  if(!html)html=`<div class="sp-card" style="cursor:default;"><p style="color:#888;font-size:14px;margin:0;">Alle Module abgeschlossen!</p></div>`;
+  document.getElementById("schnellstart").innerHTML=html;
+}
+function renderModulListe(){
+  document.getElementById("modul-inhalt").style.display="none";
+  document.getElementById("modul-liste").style.display="block";
+  let html="";
+  module.forEach((m,i)=>{html+=`<div class="sp-card ${status.module[i]?"done":""}" onclick="oeffneModul(${i})"><div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;"><div style="display:flex;align-items:center;gap:8px;"><span style="font-size:18px;">${status.module[i]?"✅":"⭕"}</span><span style="font-size:14px;font-weight:500;">${m.titel}</span></div><span class="sp-badge ${m.badge}">${m.badge==="ds"?"Datenschutz":"IT-Sicherheit"}</span></div><p style="font-size:13px;color:#888;margin:8px 0 0;">${m.folien.length} Folien</p></div>`;});
+  document.getElementById("modul-liste").innerHTML=html;
+}
+function oeffneModul(i){aktModul=i;aktFolie=0;document.getElementById("modul-liste").style.display="none";document.getElementById("modul-inhalt").style.display="block";document.getElementById("modul-titel").textContent=module[i].titel;renderFolie();}
+function renderFolie(){
+  let m=module[aktModul];let f=m.folien[aktFolie];
+  document.getElementById("folien-container").innerHTML=`<div class="sp-folie"><p style="font-size:16px;font-weight:500;margin:0 0 12px;">${f.titel}</p><p style="font-size:14px;color:#555;margin:0;line-height:1.7">${f.text}</p></div>`;
+  document.getElementById("folie-nr").textContent=(aktFolie+1)+"/"+m.folien.length;
+  document.getElementById("btn-prev").disabled=aktFolie===0;
+  document.getElementById("btn-next").disabled=aktFolie===m.folien.length-1;
+  document.getElementById("btn-abschliessen").style.display=aktFolie===m.folien.length-1?"block":"none";
+}
+function folie(dir){let max=module[aktModul].folien.length-1;aktFolie=Math.max(0,Math.min(max,aktFolie+dir));renderFolie();}
+function modulAbschliessen(){status.module[aktModul]=true;updateStats();zurueck();}
+function zurueck(){document.getElementById("modul-inhalt").style.display="none";document.getElementById("modul-liste").style.display="block";renderModulListe();}
+function startQuiz(){quizIdx=0;status.quizAntworten=[];document.getElementById("quiz-start").style.display="none";document.getElementById("quiz-ergebnis").style.display="none";document.getElementById("quiz-frage").style.display="block";renderQuizFrage();}
+function renderQuizFrage(){
+  if(quizIdx>=quizFragen.length){zeigeQuizErgebnis();return;}
+  let f=quizFragen[quizIdx];
+  let html=`<div class="sp-card" style="cursor:default;"><p style="font-size:13px;color:#888;margin:0 0 8px;">Frage ${quizIdx+1} von ${quizFragen.length}</p><div class="sp-progress"><div class="sp-bar" style="width:${Math.round((quizIdx/quizFragen.length)*100)}%"></div></div><p style="font-size:15px;font-weight:500;margin:16px 0;">${f.frage}</p>`;
+  f.optionen.forEach((o,i)=>{html+=`<button class="sp-quiz-opt" onclick="antworten(${i})">${o}</button>`;});
+  html+=`</div>`;document.getElementById("quiz-frage").innerHTML=html;
+}
+function antworten(i){
+  let f=quizFragen[quizIdx];let richtig=i===f.richtig;status.quizAntworten.push(richtig);updateStats();
+  let html=`<div class="sp-card" style="cursor:default;"><p style="font-size:13px;color:#888;margin:0 0 8px;">Frage ${quizIdx+1} von ${quizFragen.length}</p><p style="font-size:15px;font-weight:500;margin:0 0 16px;">${f.frage}</p>`;
+  f.optionen.forEach((o,j)=>{let cls=j===f.richtig?"richtig":(j===i&&!richtig?"falsch":"");html+=`<button class="sp-quiz-opt ${cls}" disabled>${o}</button>`;});
+  html+=`<div style="margin-top:12px;padding:12px;background:${richtig?"#E1F5EE":"#FCEBEB"};border-radius:8px;"><p style="font-size:13px;font-weight:500;margin:0 0 4px;color:${richtig?"#085041":"#791F1F"};">${richtig?"Richtig!":"Leider falsch."}</p><p style="font-size:13px;color:#555;margin:0;">${f.erkl}</p></div><button onclick="naechsteFrage()" style="margin-top:12px;width:auto;padding:8px 24px;">${quizIdx<quizFragen.length-1?"Nächste Frage":"Ergebnis anzeigen"}</button></div>`;
+  document.getElementById("quiz-frage").innerHTML=html;
+}
+function naechsteFrage(){quizIdx++;renderQuizFrage();}
+function zeigeQuizErgebnis(){
+  document.getElementById("quiz-frage").style.display="none";
+  let richtig=status.quizAntworten.filter(Boolean).length;
+  let pct=Math.round(richtig/quizFragen.length*100);
+  document.getElementById("quiz-ergebnis").style.display="block";
+  document.getElementById("quiz-ergebnis").innerHTML=`<div class="sp-card" style="text-align:center;cursor:default;"><p style="font-size:40px;font-weight:500;margin:0;">${pct}%</p><p style="font-size:14px;color:#888;margin:8px 0;">${richtig} von ${quizFragen.length} Fragen richtig</p><p style="font-size:14px;color:${pct>=80?"#085041":pct>=60?"#854F0B":"#791F1F"};margin:0 0 16px;">${pct>=80?"Ausgezeichnet!":pct>=60?"Gut, aber noch Verbesserungspotenzial.":"Bitte die Module nochmals durcharbeiten."}</p><button onclick="startQuiz()" style="width:auto;padding:8px 24px;margin-right:8px;">Nochmal</button><button onclick="zeige('uebersicht')" style="width:auto;padding:8px 24px;">Zur Übersicht</button></div>`;
+}
+function renderSzListe(){
+  document.getElementById("sz-detail").style.display="none";
+  document.getElementById("sz-liste").style.display="block";
+  let html="";
+  szenarien.forEach((s,i)=>{html+=`<div class="sp-card ${status.szAbgeschlossen[i]?"done":""}" onclick="oefnneSz(${i})"><div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;"><div style="display:flex;align-items:center;gap:8px;"><span>${status.szAbgeschlossen[i]?"✅":"⚠️"}</span><span style="font-size:14px;font-weight:500;">${s.titel}</span></div><span class="sp-badge ${s.typ}">${s.typ==="ds"?"Datenschutz":"IT-Sicherheit"}</span></div></div>`;});
+  document.getElementById("sz-liste").innerHTML=html;
+}
+function oefnneSz(i){
+  aktSz=i;let s=szenarien[i];
+  document.getElementById("sz-liste").style.display="none";
+  document.getElementById("sz-detail").style.display="block";
+  let html=`<button onclick="renderSzListe()" style="width:auto;padding:8px 16px;margin-bottom:12px;">← Zurück</button><div class="sp-card" style="cursor:default;"><p style="font-size:16px;font-weight:500;margin:0 0 12px;">${s.titel}</p><div class="sp-szenario"><p style="font-size:14px;margin:0;color:#555;line-height:1.7">${s.beschreibung}</p></div><p style="font-size:14px;font-weight:500;margin:12px 0 8px;">${s.fragen[0].frage}</p>`;
+  s.fragen[0].optionen.forEach((o,j)=>{html+=`<button class="sp-quiz-opt" onclick="szAntworten(${j})">${o}</button>`;});
+  html+=`</div>`;document.getElementById("sz-detail").innerHTML=html;
+}
+function szAntworten(i){
+  let s=szenarien[aktSz];let f=s.fragen[0];let richtig=i===f.richtig;status.szAbgeschlossen[aktSz]=true;updateStats();
+  let html=`<button onclick="renderSzListe()" style="width:auto;padding:8px 16px;margin-bottom:12px;">← Zurück</button><div class="sp-card" style="cursor:default;"><p style="font-size:16px;font-weight:500;margin:0 0 12px;">${s.titel}</p><div class="sp-szenario"><p style="font-size:14px;margin:0;color:#555;line-height:1.7">${s.beschreibung}</p></div><p style="font-size:14px;font-weight:500;margin:12px 0 8px;">${f.frage}</p>`;
+  f.optionen.forEach((o,j)=>{let cls=j===f.richtig?"richtig":(j===i&&!richtig?"falsch":"");html+=`<button class="sp-quiz-opt ${cls}" disabled>${o}</button>`;});
+  html+=`<div style="margin-top:12px;padding:12px;background:${richtig?"#E1F5EE":"#FCEBEB"};border-radius:8px;"><p style="font-size:13px;font-weight:500;margin:0 0 4px;color:${richtig?"#085041":"#791F1F"};">${richtig?"Richtig!":"Leider falsch."}</p><p style="font-size:13px;color:#555;margin:0;">${f.erkl}</p></div></div>`;
+  document.getElementById("sz-detail").innerHTML=html;
+}
+updateStats();renderSchnellstart();
+</script>
+</body>
+</html>
